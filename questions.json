@@ -1,0 +1,21 @@
+{
+  "title": "출장비 분석",
+  "owner": "질문과 SQL은 김깡총이 골랐습니다. 데이터는 모두 가상 데이터입니다.",
+  "files": [
+    { "match": "직원목록", "table": "employees" },
+    { "match": "출장내역", "table": "trips" },
+    { "match": "정산내역", "table": "expenses" }
+  ],
+  "questions": [
+    {
+      "id": "trip_cost_per_emp",
+      "q": "부서별 직원 한 명이 한 해 동안 쓴 출장비 (출장 없는 직원 포함)",
+      "judge": "",
+      "sql": "WITH trip_cost AS (\n  SELECT trip_id, SUM(amount) AS cost\n  FROM expenses\n  GROUP BY trip_id\n),\ntrip_full AS (\n  SELECT t.trip_id, t.emp_id, COALESCE(c.cost, 0) AS cost\n  FROM trips t\n  LEFT JOIN trip_cost c USING (trip_id)\n  WHERE t.trip_date >= DATE '2025-01-01' AND t.trip_date < DATE '2026-01-01'\n),\nemp_cost AS (\n  SELECT emp_id, SUM(cost) AS cost\n  FROM trip_full\n  GROUP BY emp_id\n)\nSELECT e.department AS 부서,\n       COUNT(*) AS 직원수,\n       SUM(COALESCE(c.cost, 0)) AS 출장비합계,\n       CAST(ROUND(SUM(COALESCE(c.cost, 0)) / COUNT(*)) AS BIGINT) AS 직원1인당출장비\nFROM employees e\nLEFT JOIN emp_cost c USING (emp_id)\nGROUP BY e.department\nORDER BY 직원1인당출장비 DESC",
+      "check": [
+        { "where": { "부서": "영업" }, "col": "직원1인당출장비", "want": 7334822 },
+        { "where": { "부서": "재무" }, "col": "직원1인당출장비", "want": 1737531 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# 배포 · 실행 부산물
+.vercel/
+__pycache__/
+*.pyc
+.env
+.env.*
+
+.vercel
+
+# 정답 · 원본 엑셀
+tools/answer/
+내려받기/
